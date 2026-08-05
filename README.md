@@ -54,6 +54,8 @@ All static key lighting uses a five-color additive palette: white, green, red, b
 
 Holding F or J acts as Shift. These two Mod-Tap keys use QMK's per-key “hold on other key press” policy: pressing another key while F or J is down resolves Shift immediately instead of waiting for the 200 ms tapping term. This makes capitalization and Shift+Enter responsive, but an overlapping literal `f`/`j` followed by another key can be interpreted as a Shift chord.
 
+A, C, and U are ordinary keys with no hold action or Tap Dance delay.
+
 ## Flashing
 
 Install ZSA's open-source command-line flasher once:

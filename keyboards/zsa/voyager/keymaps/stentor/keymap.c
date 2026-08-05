@@ -9,12 +9,6 @@ enum layers {
     L_SYMBOLS,
 };
 
-enum tap_dances {
-    TD_A_SYMBOL,
-    TD_C_LBRC,
-    TD_U_UGRV,
-};
-
 enum custom_keycodes {
     CAPS_SHIFT = SAFE_RANGE,
     NUM_SHIFT,
@@ -28,9 +22,9 @@ enum custom_keycodes {
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [L_BASE] = LAYOUT_voyager(
         KC_ESC,  KC_1,           KC_2,           KC_3,           KC_4,           KC_5,                               KC_6,    KC_7,           KC_8,           KC_9,    KC_0,    KC_BSPC,
-        KC_TAB,  TD(TD_A_SYMBOL),FR_Z,            KC_E,           KC_R,           KC_T,                               KC_Y,    TD(TD_U_UGRV),  KC_I,           KC_O,    KC_P,    KC_ENT,
+        KC_TAB,  FR_A,            FR_Z,            KC_E,           KC_R,           KC_T,                               KC_Y,    KC_U,            KC_I,           KC_O,    KC_P,    KC_ENT,
         CAPS_SHIFT,FR_Q,         KC_S,            KC_D,           LSFT_T(KC_F),    KC_G,                               KC_H,    RSFT_T(KC_J),    KC_K,           KC_L,    FR_M,    KC_EQL,
-        KC_LALT, FR_W,           KC_X,            TD(TD_C_LBRC),  KC_V,           KC_B,                               KC_N,    FR_COMM,         FR_SCLN,        FR_COLN, KC_SLSH, KC_RCTL,
+        KC_LALT, FR_W,           KC_X,            KC_C,           KC_V,           KC_B,                               KC_N,    FR_COMM,         FR_SCLN,        FR_COLN, KC_SLSH, KC_RCTL,
                                                             KC_LGUI, TT(L_SYMBOLS),                       KC_TRNS, KC_SPC
     ),
 
@@ -274,36 +268,3 @@ bool rgb_matrix_indicators_user(void) {
 
     return true;
 }
-
-// --- Tap dances ------------------------------------------------------------
-
-typedef struct {
-    uint16_t tap_keycode;
-    uint16_t hold_keycode;
-} dual_key_t;
-
-static void dual_key_finished(tap_dance_state_t *state, void *user_data) {
-    dual_key_t *dual_key = (dual_key_t *)user_data;
-    if (state->pressed) {
-        register_code16(dual_key->hold_keycode);
-    } else {
-        tap_code16(dual_key->tap_keycode);
-    }
-}
-
-static void dual_key_reset(tap_dance_state_t *state, void *user_data) {
-    dual_key_t *dual_key = (dual_key_t *)user_data;
-    unregister_code16(dual_key->hold_keycode);
-}
-
-#define ACTION_TAP_DANCE_DUAL_KEY(tap_key, hold_key) \
-    { \
-        .fn = {NULL, dual_key_finished, dual_key_reset, NULL}, \
-        .user_data = (void *)&((dual_key_t){tap_key, hold_key}), \
-    }
-
-tap_dance_action_t tap_dance_actions[] = {
-    [TD_A_SYMBOL] = ACTION_TAP_DANCE_DUAL_KEY(FR_A, KC_NUBS),
-    [TD_C_LBRC] = ACTION_TAP_DANCE_DUAL_KEY(KC_C, KC_LBRC),
-    [TD_U_UGRV] = ACTION_TAP_DANCE_DUAL_KEY(KC_U, FR_UGRV),
-};

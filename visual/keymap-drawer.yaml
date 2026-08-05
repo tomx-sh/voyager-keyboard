@@ -57,9 +57,6 @@ parse_config:
     FR_8: "8"
     FR_9: "9"
     FR_0: "0"
-    TD(TD_A_SYMBOL): {t: "A", h: "<"}
-    TD(TD_C_LBRC): {t: "C", h: "["}
-    TD(TD_U_UGRV): {t: "U", h: "Ù"}
     CAPS_SHIFT: {t: "Caps / Num ×2", h: "Shift"}
     NUM_SHIFT: {t: "Exit Num", h: "Shift"}
 
