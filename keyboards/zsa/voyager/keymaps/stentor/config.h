@@ -6,6 +6,10 @@
 #define SERIAL_NUMBER "voyager-keyboard"
 #define LAYER_STATE_8BIT
 
+// Allow selected Mod-Tap keys to become modifiers as soon as another key is
+// pressed. The per-key callback limits this to the F/J home-row Shift keys.
+#define HOLD_ON_OTHER_KEY_PRESS_PER_KEY
+
 // The second tap is recognized during this window, but the first tap is never
 // delayed while the firmware waits for it.
 #define CAPS_SHIFT_DOUBLE_TAP_TERM 250

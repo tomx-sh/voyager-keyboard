@@ -53,6 +53,18 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     ),
 };
 
+bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        case LSFT_T(KC_F):
+        case RSFT_T(KC_J):
+            // Resolve Shift on the other key's press, without waiting for the
+            // tapping term. This makes capitalization and Shift+Enter immediate.
+            return true;
+        default:
+            return false;
+    }
+}
+
 // --- Caps / Shift / Num key -----------------------------------------------
 
 static bool     caps_shift_pressed;

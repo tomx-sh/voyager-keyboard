@@ -50,6 +50,10 @@ The numeric layer emits the shifted key positions required for digits by the mac
 
 All static key lighting uses a five-color additive palette: white, green, red, blue, and violet (`red + blue`). The keyboard's global brightness setting scales these colors without changing their hue.
 
+### Home-row Shift keys
+
+Holding F or J acts as Shift. These two Mod-Tap keys use QMK's per-key “hold on other key press” policy: pressing another key while F or J is down resolves Shift immediately instead of waiting for the 200 ms tapping term. This makes capitalization and Shift+Enter responsive, but an overlapping literal `f`/`j` followed by another key can be interpreted as a Shift chord.
+
 ## Flashing
 
 Install ZSA's open-source command-line flasher once:
