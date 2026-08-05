@@ -19,6 +19,14 @@ parse_config:
     KC_DOWN: "↓"
     KC_LEFT: "←"
     KC_RGHT: "→"
+    KC_BRID: "Brightness −"
+    KC_BRIU: "Brightness +"
+    KC_VOLD: "Volume −"
+    KC_VOLU: "Volume +"
+    KC_MUTE: "Mute"
+    KC_MPRV: "Previous"
+    KC_MPLY: "Play / Pause"
+    KC_MNXT: "Next"
     KC_BSLS: "\\"
     TT(L_SYMBOLS): {t: "Symbols", h: "Toggle"}
     ALT_EMOJI: {t: "Emoji", h: "⌥"}

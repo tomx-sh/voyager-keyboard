@@ -15,7 +15,7 @@ enum custom_keycodes {
     ALT_EMOJI,
 };
 
-// Lighting is restricted to these five additive colors. Brightness is still
+// Lighting is restricted to these six additive colors. Brightness is still
 // controlled globally by the keyboard.
 #define RGB_WHITE_DIM 15, 15, 15
 #define RGB_VIOLET RGB_MAGENTA
@@ -40,10 +40,10 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     ),
 
     [L_SYMBOLS] = LAYOUT_voyager(
-        _______, _______, _______, _______,        FR_VOY_LABK,    FR_VOY_RABK,                         _______, _______, KC_PGUP, FR_CIRC, FR_DLR,  QK_BOOT,
-        _______, FR_VOY_AT, FR_PIPE,      _______,  FR_LPRN,        FR_RPRN,                             _______, _______, KC_UP,   FR_LUGR, FR_GRV,  _______,
-        _______, _______, _______,        _______,  FR_LBRC,        FR_RBRC,                             _______, KC_LEFT,  KC_DOWN, KC_RGHT, _______, _______,
-        _______, _______, _______,        _______,  FR_LCBR,        FR_RCBR,                             _______, _______, KC_PGDN, _______, _______, _______,
+        _______, _______, _______, _______,        FR_VOY_LABK,    FR_VOY_RABK,                         KC_BRID, KC_BRIU, KC_PGUP, FR_CIRC, FR_DLR,  QK_BOOT,
+        _______, FR_VOY_AT, FR_PIPE,      _______,  FR_LPRN,        FR_RPRN,                             KC_VOLD, KC_VOLU, KC_UP,   FR_LUGR, FR_GRV,  _______,
+        _______, _______, _______,        _______,  FR_LBRC,        FR_RBRC,                             KC_MUTE, KC_LEFT, KC_DOWN, KC_RGHT, _______, _______,
+        _______, _______, _______,        _______,  FR_LCBR,        FR_RCBR,                             _______, _______, KC_PGDN, KC_MPRV, KC_MPLY, KC_MNXT,
                                                     _______, _______,                         _______, _______
     ),
 };
@@ -220,6 +220,14 @@ static const uint8_t PROGMEM french_symbol_key_positions[][2] = {
     {6, 3}, {6, 4}, {7, 3}, {7, 4},
 };
 
+// Display and media controls on the Symbols layer share a cyan palette.
+static const uint8_t PROGMEM system_control_key_positions[][2] = {
+    {6, 0}, {6, 1}, // Brightness down/up
+    {7, 0}, {7, 1}, // Volume down/up
+    {8, 0},         // Mute
+    {9, 3}, {9, 4}, {9, 5}, // Previous, play/pause, next
+};
+
 // A–Z plus É, È, Ç, and À: these are the French AZERTY keys whose letter
 // output is affected by Caps Lock. Punctuation-only positions are omitted.
 static const uint8_t PROGMEM caps_letter_key_positions[][2] = {
@@ -281,8 +289,10 @@ bool rgb_matrix_indicators_user(void) {
 
         if (active_layer == L_SYMBOLS) {
             RGB green = rgb_at_current_brightness((RGB){RGB_GREEN});
+            RGB cyan  = rgb_at_current_brightness((RGB){RGB_CYAN});
 
             set_matrix_keys_color(french_symbol_key_positions, ARRAY_SIZE(french_symbol_key_positions), green);
+            set_matrix_keys_color(system_control_key_positions, ARRAY_SIZE(system_control_key_positions), cyan);
         }
     } else if (rgb_matrix_get_flags() == LED_FLAG_NONE) {
         rgb_matrix_set_color_all(0, 0, 0);
