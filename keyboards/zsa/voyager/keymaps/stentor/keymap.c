@@ -41,7 +41,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
     [L_SYMBOLS] = LAYOUT_voyager(
         _______, _______, _______, _______,        FR_LABK,        FR_RABK,                             _______, _______, KC_PGUP, FR_CIRC, FR_DLR,  QK_BOOT,
-        _______, _______, _______,        _______,  FR_LPRN,        FR_RPRN,                             _______, _______, KC_UP,   FR_LUGR, FR_GRV,  _______,
+        _______, FR_AT,   FR_PIPE,        _______,  FR_LPRN,        FR_RPRN,                             _______, _______, KC_UP,   FR_LUGR, FR_GRV,  _______,
         _______, _______, _______,        _______,  FR_LBRC,        FR_RBRC,                             _______, KC_LEFT,  KC_DOWN, KC_RGHT, _______, _______,
         _______, _______, _______,        _______,  FR_LCBR,        FR_RCBR,                             _______, _______, KC_PGDN, _______, _______, _______,
                                                     _______, _______,                         _______, _______
@@ -200,8 +200,8 @@ static const uint8_t PROGMEM ledmap[][RGB_MATRIX_LED_COUNT][3] = {
         {RGB_WHITE_DIM}, {RGB_WHITE_DIM}, {RGB_WHITE_DIM}, {RGB_WHITE_DIM}
     },
     [L_SYMBOLS] = {
+        {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_VIOLET}, {RGB_VIOLET}, {RGB_OFF}, {RGB_GREEN}, {RGB_GREEN}, {RGB_OFF}, {RGB_VIOLET}, {RGB_VIOLET},
         {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_VIOLET}, {RGB_VIOLET}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_VIOLET}, {RGB_VIOLET},
-        {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_VIOLET}, {RGB_VIOLET}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_BLUE}, {RGB_OFF},
         {RGB_OFF}, {RGB_BLUE}, {RGB_OFF}, {RGB_OFF}, {RGB_BLUE}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_BLUE}, {RGB_OFF},
         {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_BLUE}, {RGB_BLUE}, {RGB_BLUE}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_BLUE}, {RGB_OFF},
         {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}
