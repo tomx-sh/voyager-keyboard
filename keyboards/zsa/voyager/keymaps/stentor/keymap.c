@@ -5,23 +5,43 @@
 
 enum layers {
     L_BASE,
+    L_NUM,
     L_SYMBOLS,
 };
 
 enum tap_dances {
-    TD_CAPS_SHIFT,
     TD_A_SYMBOL,
     TD_C_LBRC,
     TD_U_UGRV,
 };
 
+enum custom_keycodes {
+    CAPS_SHIFT = SAFE_RANGE,
+    NUM_SHIFT,
+};
+
+// Lighting is restricted to these five additive colors. Brightness is still
+// controlled globally by the keyboard.
+#define RGB_WHITE_DIM 15, 15, 15
+#define RGB_VIOLET RGB_MAGENTA
+
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [L_BASE] = LAYOUT_voyager(
         KC_ESC,  KC_1,           KC_2,           KC_3,           KC_4,           KC_5,                               KC_6,    KC_7,           KC_8,           KC_9,    KC_0,    KC_BSPC,
         KC_TAB,  TD(TD_A_SYMBOL),FR_Z,            KC_E,           KC_R,           KC_T,                               KC_Y,    TD(TD_U_UGRV),  KC_I,           KC_O,    KC_P,    KC_ENT,
-        TD(TD_CAPS_SHIFT),FR_Q,  KC_S,            KC_D,           LSFT_T(KC_F),    KC_G,                               KC_H,    RSFT_T(KC_J),    KC_K,           KC_L,    FR_M,    KC_EQL,
+        CAPS_SHIFT,FR_Q,         KC_S,            KC_D,           LSFT_T(KC_F),    KC_G,                               KC_H,    RSFT_T(KC_J),    KC_K,           KC_L,    FR_M,    KC_EQL,
         KC_LALT, FR_W,           KC_X,            TD(TD_C_LBRC),  KC_V,           KC_B,                               KC_N,    FR_COMM,         FR_SCLN,        FR_COLN, KC_SLSH, KC_RCTL,
                                                             KC_LGUI, TT(L_SYMBOLS),                       KC_TRNS, KC_SPC
+    ),
+
+    // macOS French AZERTY has no useful Num Lock for the main number row.
+    // This local layer emits the shifted AZERTY positions that produce 1–0.
+    [L_NUM] = LAYOUT_voyager(
+        _______, FR_1,    FR_2,    FR_3,    FR_4,    FR_5,                         FR_6,    FR_7,    FR_8,    FR_9,    FR_0,    _______,
+        _______, _______, _______, _______, _______, _______,                      _______, _______, _______, _______, _______, _______,
+        NUM_SHIFT,_______, _______, _______, _______, _______,                      _______, _______, _______, _______, _______, _______,
+        _______, _______, _______, _______, _______, _______,                      _______, _______, _______, _______, _______, _______,
+                                             _______, _______,            _______, _______
     ),
 
     [L_SYMBOLS] = LAYOUT_voyager(
@@ -32,6 +52,89 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                                                     _______, _______,                         _______, _______
     ),
 };
+
+// --- Caps / Shift / Num key -----------------------------------------------
+
+static bool     caps_shift_pressed;
+static bool     caps_shift_interrupted;
+static bool     caps_shift_second_press;
+static bool     caps_shift_tap_pending;
+static bool     caps_state_before_tap;
+static uint16_t caps_shift_press_timer;
+static uint16_t caps_shift_tap_timer;
+
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    bool is_caps_shift_key = keycode == CAPS_SHIFT || keycode == NUM_SHIFT;
+
+    if (!is_caps_shift_key && record->event.pressed) {
+        // Any chord makes the current press an ordinary Shift hold and also
+        // closes the double-tap window from a previous Caps tap.
+        caps_shift_interrupted = caps_shift_pressed;
+        caps_shift_tap_pending = false;
+    }
+
+    if (!is_caps_shift_key) {
+        return true;
+    }
+
+    if (record->event.pressed) {
+        if (caps_shift_tap_pending &&
+            timer_elapsed(caps_shift_tap_timer) < CAPS_SHIFT_DOUBLE_TAP_TERM) {
+            caps_shift_tap_pending  = false;
+            caps_shift_second_press = true;
+
+            bool caps_after_tap = !caps_state_before_tap;
+
+            // The first tap already toggled Caps. Ensure it is on, then enable
+            // Numbers immediately on this second key-down.
+            if (!caps_after_tap) {
+                tap_code(KC_CAPS);
+            }
+            layer_on(L_NUM);
+            return false;
+        }
+
+        caps_shift_tap_pending  = false;
+        caps_shift_second_press = false;
+        caps_shift_interrupted  = false;
+        caps_shift_pressed      = true;
+        caps_shift_press_timer  = timer_read();
+        register_code(KC_LSFT);
+        return false;
+    }
+
+    if (caps_shift_second_press) {
+        caps_shift_second_press = false;
+        return false;
+    }
+
+    unregister_code(KC_LSFT);
+    caps_shift_pressed = false;
+
+    bool tapped = !caps_shift_interrupted && timer_elapsed(caps_shift_press_timer) < TAPPING_TERM;
+
+    if (tapped && layer_state_is(L_NUM)) {
+        // A single tap exits Numbers mode directly. It never falls through to
+        // the ordinary Caps action, and leaves the keyboard in lowercase mode.
+        layer_off(L_NUM);
+        if (host_keyboard_led_state().caps_lock) {
+            tap_code(KC_CAPS);
+        }
+        caps_shift_tap_pending = false;
+        return false;
+    }
+
+    if (tapped) {
+        // Toggle Caps as soon as the first tap is released. Do not wait to
+        // discover whether a second tap will arrive.
+        caps_state_before_tap = host_keyboard_led_state().caps_lock;
+        tap_code(KC_CAPS);
+        caps_shift_tap_pending = true;
+        caps_shift_tap_timer   = timer_read();
+    }
+
+    return false;
+}
 
 // --- Per-layer RGB ---------------------------------------------------------
 
@@ -44,8 +147,7 @@ bool led_update_user(led_t led_state) {
 
 extern rgb_config_t rgb_matrix_config;
 
-static RGB hsv_to_rgb_at_current_brightness(HSV hsv) {
-    RGB rgb = hsv_to_rgb(hsv);
+static RGB rgb_at_current_brightness(RGB rgb) {
     float brightness = (float)rgb_matrix_config.hsv.v / UINT8_MAX;
     return (RGB){brightness * rgb.r, brightness * rgb.g, brightness * rgb.b};
 }
@@ -54,37 +156,74 @@ void keyboard_post_init_user(void) {
     rgb_matrix_enable();
 }
 
-// One HSV triple per physical LED. Array order is defined by the Voyager's
+// One RGB triple per physical LED. Array order is defined by the Voyager's
 // rgb_matrix layout in ZSA's keyboard.json.
 static const uint8_t PROGMEM ledmap[][RGB_MATRIX_LED_COUNT][3] = {
     [L_BASE] = {
-        {0,255,255}, {0,0,15}, {0,0,15}, {0,0,15}, {0,0,15}, {0,0,15}, {76,255,255}, {0,0,255}, {0,0,255}, {0,0,255}, {0,0,255}, {0,0,255},
-        {0,0,15}, {0,0,255}, {0,0,255}, {0,0,255}, {0,0,255}, {0,0,255}, {0,0,15}, {0,0,255}, {0,0,255}, {0,0,255}, {0,0,255}, {0,0,255},
-        {0,0,15}, {0,0,15}, {0,0,15}, {0,0,15}, {0,0,15}, {0,0,15}, {0,0,15}, {16,255,255}, {0,0,255}, {0,0,255}, {0,0,255}, {0,0,255},
-        {0,0,255}, {76,255,255}, {0,0,255}, {0,0,255}, {0,0,255}, {0,0,255}, {0,0,255}, {0,0,15}, {0,0,255}, {0,0,15}, {0,0,15}, {0,0,15},
-        {0,0,15}, {0,0,15}, {0,0,15}, {0,0,15}
+        {RGB_RED}, {RGB_WHITE_DIM}, {RGB_WHITE_DIM}, {RGB_WHITE_DIM}, {RGB_WHITE_DIM}, {RGB_WHITE_DIM}, {RGB_GREEN}, {RGB_WHITE}, {RGB_WHITE}, {RGB_WHITE}, {RGB_WHITE}, {RGB_WHITE},
+        {RGB_WHITE_DIM}, {RGB_WHITE}, {RGB_WHITE}, {RGB_WHITE}, {RGB_WHITE}, {RGB_WHITE}, {RGB_WHITE_DIM}, {RGB_WHITE}, {RGB_WHITE}, {RGB_WHITE}, {RGB_WHITE}, {RGB_WHITE},
+        {RGB_WHITE_DIM}, {RGB_WHITE_DIM}, {RGB_WHITE_DIM}, {RGB_WHITE_DIM}, {RGB_WHITE_DIM}, {RGB_WHITE_DIM}, {RGB_WHITE_DIM}, {RGB_RED}, {RGB_WHITE}, {RGB_WHITE}, {RGB_WHITE}, {RGB_WHITE},
+        {RGB_WHITE}, {RGB_GREEN}, {RGB_WHITE}, {RGB_WHITE}, {RGB_WHITE}, {RGB_WHITE}, {RGB_WHITE}, {RGB_WHITE_DIM}, {RGB_WHITE}, {RGB_WHITE_DIM}, {RGB_WHITE_DIM}, {RGB_WHITE_DIM},
+        {RGB_WHITE_DIM}, {RGB_WHITE_DIM}, {RGB_WHITE_DIM}, {RGB_WHITE_DIM}
     },
     [L_SYMBOLS] = {
-        {0,0,0}, {0,0,0}, {0,0,0}, {220,255,255}, {220,255,255}, {220,255,255}, {0,0,0}, {76,255,255}, {76,255,255}, {76,255,255}, {220,255,255}, {220,255,255},
-        {0,0,0}, {76,255,255}, {76,255,255}, {76,255,255}, {220,255,255}, {220,255,255}, {0,0,0}, {0,0,0}, {76,255,255}, {0,0,0}, {220,255,255}, {220,255,255},
-        {0,0,0}, {139,255,255}, {0,0,0}, {0,0,0}, {169,190,162}, {0,0,0}, {0,0,0}, {0,0,0}, {0,0,0}, {0,0,0}, {169,97,255}, {0,0,0},
-        {0,0,0}, {0,0,0}, {0,0,0}, {169,97,255}, {169,97,255}, {169,97,255}, {0,0,0}, {0,0,0}, {0,0,0}, {0,0,0}, {169,190,162}, {0,0,0},
-        {0,0,0}, {0,0,0}, {0,0,0}, {0,0,0}
+        {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_VIOLET}, {RGB_VIOLET}, {RGB_VIOLET}, {RGB_OFF}, {RGB_GREEN}, {RGB_GREEN}, {RGB_GREEN}, {RGB_VIOLET}, {RGB_VIOLET},
+        {RGB_OFF}, {RGB_GREEN}, {RGB_GREEN}, {RGB_GREEN}, {RGB_VIOLET}, {RGB_VIOLET}, {RGB_OFF}, {RGB_OFF}, {RGB_GREEN}, {RGB_OFF}, {RGB_VIOLET}, {RGB_VIOLET},
+        {RGB_OFF}, {RGB_BLUE}, {RGB_OFF}, {RGB_OFF}, {RGB_BLUE}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_BLUE}, {RGB_OFF},
+        {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_BLUE}, {RGB_BLUE}, {RGB_BLUE}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_BLUE}, {RGB_OFF},
+        {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}
     },
 };
 
+// Matrix coordinates, not LED indices: the Voyager's LEDs are wired one half
+// at a time, so the visual number row is not contiguous in LED-index order.
+static const uint8_t PROGMEM digit_key_positions[][2] = {
+    {0, 2}, {0, 3}, {0, 4}, {0, 5}, {0, 6},
+    {6, 0}, {6, 1}, {6, 2}, {6, 3}, {6, 4},
+};
+
+// A–Z plus É, È, Ç, and À: these are the French AZERTY keys whose letter
+// output is affected by Caps Lock. Punctuation-only positions are omitted.
+static const uint8_t PROGMEM caps_letter_key_positions[][2] = {
+    // É, È, Ç, À
+    {0, 3}, {6, 1}, {6, 3}, {6, 4},
+    // A, Z, E, R, T, Y, U, I, O, P
+    {1, 2}, {1, 3}, {1, 4}, {1, 5}, {1, 6},
+    {7, 0}, {7, 1}, {7, 2}, {7, 3}, {7, 4},
+    // Q, S, D, F, G, H, J, K, L, M
+    {2, 2}, {2, 3}, {2, 4}, {2, 5}, {2, 6},
+    {8, 0}, {8, 1}, {8, 2}, {8, 3}, {8, 4},
+    // W, X, C, V, B, N
+    {3, 2}, {3, 3}, {3, 4}, {3, 5}, {4, 4}, {10, 2},
+};
+
+static void set_matrix_key_color(uint8_t row, uint8_t column, RGB rgb) {
+    uint8_t led_index = g_led_config.matrix_co[row][column];
+    if (led_index != NO_LED) {
+        rgb_matrix_set_color(led_index, rgb.r, rgb.g, rgb.b);
+    }
+}
+
+static void set_matrix_keys_color(const uint8_t positions[][2], uint8_t count, RGB rgb) {
+    for (uint8_t index = 0; index < count; index++) {
+        uint8_t row    = pgm_read_byte(&positions[index][0]);
+        uint8_t column = pgm_read_byte(&positions[index][1]);
+        set_matrix_key_color(row, column, rgb);
+    }
+}
+
 static void set_layer_color(uint8_t layer) {
     for (uint8_t index = 0; index < RGB_MATRIX_LED_COUNT; index++) {
-        HSV hsv = {
-            .h = pgm_read_byte(&ledmap[layer][index][0]),
-            .s = pgm_read_byte(&ledmap[layer][index][1]),
-            .v = pgm_read_byte(&ledmap[layer][index][2]),
+        RGB rgb = {
+            .r = pgm_read_byte(&ledmap[layer][index][0]),
+            .g = pgm_read_byte(&ledmap[layer][index][1]),
+            .b = pgm_read_byte(&ledmap[layer][index][2]),
         };
 
-        if (hsv.h == 0 && hsv.s == 0 && hsv.v == 0) {
+        if (rgb.r == 0 && rgb.g == 0 && rgb.b == 0) {
             rgb_matrix_set_color(index, 0, 0, 0);
         } else {
-            RGB rgb = hsv_to_rgb_at_current_brightness(hsv);
+            rgb = rgb_at_current_brightness(rgb);
             rgb_matrix_set_color(index, rgb.r, rgb.g, rgb.b);
         }
     }
@@ -95,15 +234,30 @@ bool rgb_matrix_indicators_user(void) {
         return false;
     }
 
+    uint8_t active_layer = get_highest_layer(layer_state);
+
     if (!keyboard_config.disable_layer_led) {
-        set_layer_color(get_highest_layer(layer_state));
+        // Numeric mode is an overlay on the base colors; Symbols has its own
+        // full map and remains visually and behaviorally higher priority.
+        set_layer_color(active_layer == L_SYMBOLS ? L_SYMBOLS : L_BASE);
     } else if (rgb_matrix_get_flags() == LED_FLAG_NONE) {
         rgb_matrix_set_color_all(0, 0, 0);
     }
 
-    if (caps_lock_active && get_highest_layer(layer_state) == L_BASE) {
-        RGB rgb = hsv_to_rgb_at_current_brightness((HSV){220, 255, 255});
-        rgb_matrix_set_color(12, rgb.r, rgb.g, rgb.b);
+    if (active_layer != L_SYMBOLS && caps_lock_active) {
+        RGB blue = rgb_at_current_brightness((RGB){RGB_BLUE});
+
+        set_matrix_key_color(2, 1, blue);
+        set_matrix_keys_color(caps_letter_key_positions, ARRAY_SIZE(caps_letter_key_positions), blue);
+    }
+
+    if (active_layer != L_SYMBOLS && layer_state_is(L_NUM)) {
+        RGB violet = rgb_at_current_brightness((RGB){RGB_VIOLET});
+
+        // Apply this after Caps lighting so É/È/Ç/À positions are violet when
+        // they belong to the digit row, not blue as they are on the Base layer.
+        set_matrix_key_color(2, 1, violet);
+        set_matrix_keys_color(digit_key_positions, ARRAY_SIZE(digit_key_positions), violet);
     }
 
     return true;
@@ -136,76 +290,7 @@ static void dual_key_reset(tap_dance_state_t *state, void *user_data) {
         .user_data = (void *)&((dual_key_t){tap_key, hold_key}), \
     }
 
-enum dance_step {
-    SINGLE_TAP = 1,
-    SINGLE_HOLD,
-    DOUBLE_TAP,
-    DOUBLE_HOLD,
-    DOUBLE_SINGLE_TAP,
-    MORE_TAPS,
-};
-
-static uint8_t caps_dance_step;
-
-static uint8_t dance_step(tap_dance_state_t *state) {
-    if (state->count == 1) {
-        return (state->interrupted || !state->pressed) ? SINGLE_TAP : SINGLE_HOLD;
-    }
-    if (state->count == 2) {
-        if (state->interrupted) {
-            return DOUBLE_SINGLE_TAP;
-        }
-        return state->pressed ? DOUBLE_HOLD : DOUBLE_TAP;
-    }
-    return MORE_TAPS;
-}
-
-static void caps_dance_each_tap(tap_dance_state_t *state, void *user_data) {
-    if (state->count >= 3) {
-        tap_code16(KC_CAPS);
-    }
-}
-
-static void caps_dance_finished(tap_dance_state_t *state, void *user_data) {
-    caps_dance_step = dance_step(state);
-    switch (caps_dance_step) {
-        case SINGLE_TAP:
-            register_code16(KC_CAPS);
-            break;
-        case SINGLE_HOLD:
-            register_code16(KC_LSFT);
-            break;
-        case DOUBLE_TAP:
-            register_code16(KC_NUM);
-            break;
-        case DOUBLE_SINGLE_TAP:
-            tap_code16(KC_CAPS);
-            register_code16(KC_CAPS);
-            break;
-    }
-}
-
-static void caps_dance_reset(tap_dance_state_t *state, void *user_data) {
-    wait_ms(10);
-    switch (caps_dance_step) {
-        case SINGLE_TAP:
-            unregister_code16(KC_CAPS);
-            break;
-        case SINGLE_HOLD:
-            unregister_code16(KC_LSFT);
-            break;
-        case DOUBLE_TAP:
-            unregister_code16(KC_NUM);
-            break;
-        case DOUBLE_SINGLE_TAP:
-            unregister_code16(KC_CAPS);
-            break;
-    }
-    caps_dance_step = 0;
-}
-
 tap_dance_action_t tap_dance_actions[] = {
-    [TD_CAPS_SHIFT] = ACTION_TAP_DANCE_FN_ADVANCED(caps_dance_each_tap, caps_dance_finished, caps_dance_reset),
     [TD_A_SYMBOL] = ACTION_TAP_DANCE_DUAL_KEY(FR_A, KC_NUBS),
     [TD_C_LBRC] = ACTION_TAP_DANCE_DUAL_KEY(KC_C, KC_LBRC),
     [TD_U_UGRV] = ACTION_TAP_DANCE_DUAL_KEY(KC_U, FR_UGRV),

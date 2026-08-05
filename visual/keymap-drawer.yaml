@@ -47,10 +47,21 @@ parse_config:
     FR_DLR: "$"
     FR_LBRC: "["
     FR_RBRC: "]"
+    FR_1: "1"
+    FR_2: "2"
+    FR_3: "3"
+    FR_4: "4"
+    FR_5: "5"
+    FR_6: "6"
+    FR_7: "7"
+    FR_8: "8"
+    FR_9: "9"
+    FR_0: "0"
     TD(TD_A_SYMBOL): {t: "A", h: "<"}
     TD(TD_C_LBRC): {t: "C", h: "["}
     TD(TD_U_UGRV): {t: "U", h: "Ù"}
-    TD(TD_CAPS_SHIFT): {t: "Caps", h: "Shift"}
+    CAPS_SHIFT: {t: "Caps / Num ×2", h: "Shift"}
+    NUM_SHIFT: {t: "Exit Num", h: "Shift"}
 
 draw_config:
   append_colon_to_layer_header: false

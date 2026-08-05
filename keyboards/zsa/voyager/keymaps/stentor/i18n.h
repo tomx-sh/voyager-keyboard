@@ -19,3 +19,15 @@
 #define FR_LBRC ALGR(KC_5)
 #define FR_RBRC ALGR(KC_MINS)
 
+// Number-row digits on the macOS French AZERTY layout require Shift. These
+// aliases are used by the firmware-local numeric layer.
+#define FR_1 S(KC_1)
+#define FR_2 S(KC_2)
+#define FR_3 S(KC_3)
+#define FR_4 S(KC_4)
+#define FR_5 S(KC_5)
+#define FR_6 S(KC_6)
+#define FR_7 S(KC_7)
+#define FR_8 S(KC_8)
+#define FR_9 S(KC_9)
+#define FR_0 S(KC_0)

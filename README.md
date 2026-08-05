@@ -37,6 +37,19 @@ Open `artifacts/layout.svg` in a browser and print at 100% or “fit to page”.
 
 `keymap.c` is the only source of truth for key behavior. The renderer converts it through QMK's own `c2json` command and then uses [keymap-drawer](https://github.com/caksoylar/keymap-drawer) to produce the SVG. The intermediate JSON and YAML files live under `.build/render/`.
 
+### Caps / Shift / Num key
+
+The left home-row key has deliberately custom timing rather than QMK Tap Dance:
+
+- Hold it to register left Shift immediately. Using another key while it is held always makes it a Shift chord.
+- Tap it to toggle Caps Lock immediately on release. The key, A–Z, and the French letter keys `é`, `è`, `ç`, and `à` glow blue while the Mac reports Caps Lock active.
+- Tap it twice to enter the local numeric layer immediately on the second press. Numbers mode keeps Caps Lock enabled, while the key and `1–0` keys glow violet (pure red plus pure blue).
+- While Numbers mode is active, tap it once to return directly to lowercase Base mode. Holding it still behaves as Shift and does not exit the mode.
+
+The numeric layer emits the shifted key positions required for digits by the macOS French AZERTY input source. It does not send the host `Num Lock` key, which would not change the main AZERTY number row. Entering Numbers mode ensures Caps Lock is on; the single-tap exit ensures Caps Lock is off. The double-tap recognition window is configured by `CAPS_SHIFT_DOUBLE_TAP_TERM` in `config.h`; it never delays the single-tap action.
+
+All static key lighting uses a five-color additive palette: white, green, red, blue, and violet (`red + blue`). The keyboard's global brightness setting scales these colors without changing their hue.
+
 ## Flashing
 
 Install ZSA's open-source command-line flasher once:

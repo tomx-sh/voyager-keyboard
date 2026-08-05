@@ -27,7 +27,7 @@ uv run --project "$PROJECT_DIR" qmk --config-file "$QMK_CONFIG" c2json \
 
 uv run --project "$PROJECT_DIR" keymap \
     -c "$PROJECT_DIR/visual/keymap-drawer.yaml" \
-    parse --columns 12 --layer-names Base Symbols \
+    parse --columns 12 --layer-names Base Numbers Symbols \
     -q "$RENDER_DIR/keymap.json" \
     -o "$RENDER_DIR/keymap.yaml"
 

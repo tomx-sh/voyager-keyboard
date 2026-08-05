@@ -6,6 +6,10 @@
 #define SERIAL_NUMBER "voyager-keyboard"
 #define LAYER_STATE_8BIT
 
+// The second tap is recognized during this window, but the first tap is never
+// delayed while the firmware waits for it.
+#define CAPS_SHIFT_DOUBLE_TAP_TERM 250
+
 #define RGB_MATRIX_STARTUP_SPD 60
 
 // The layout uses a static per-layer LED map. Removing unused animations keeps
@@ -58,4 +62,3 @@
 #undef ENABLE_RGB_MATRIX_STARLIGHT_DUAL_HUE
 #undef ENABLE_RGB_MATRIX_STARLIGHT_DUAL_SAT
 #undef ENABLE_RGB_MATRIX_RIVERFLOW
-
