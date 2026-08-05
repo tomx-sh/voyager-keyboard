@@ -20,33 +20,30 @@ parse_config:
     KC_LEFT: "←"
     KC_RGHT: "→"
     KC_BSLS: "\\"
-    KC_GRV: "`"
-    KC_NUBS: "NUBS"
-    KC_KP_ASTERISK: "*"
-    S(KC_GRV): {t: "`", h: "Shift"}
-    S(KC_NUBS): {t: "NUBS", h: "Shift"}
-    LALT(KC_RBRC): {t: "]", h: "Alt"}
-    S(KC_QUOT): {t: "'", h: "Shift"}
-    LALT(S(KC_L)): "⌥⇧L"
-    LALT(S(KC_5)): "⌥⇧5"
-    LALT(S(KC_MINS)): "⌥⇧-"
     TT(L_SYMBOLS): {t: "Symbols", h: "Toggle"}
+    ALT_EMOJI: {t: "Emoji", h: "⌥"}
     KC_TRANSPARENT: {t: "▽", type: trans}
     QK_BOOT: {t: "BOOT", type: bootloader}
     FR_A: "A"
     FR_Z: "Z"
     FR_Q: "Q"
     FR_W: "W"
-    FR_UGRV: "Ù"
+    FR_LABK: "<"
+    FR_RABK: ">"
+    FR_CIRC: {t: "^", s: "¨"}
+    FR_LUGR: {t: "ù", s: "%"}
+    FR_GRV: {t: "`", s: "£"}
     FR_M: "M"
     FR_COMM: ","
     FR_SCLN: ";"
     FR_COLN: ":"
     FR_LPRN: "("
     FR_RPRN: ")"
-    FR_DLR: "$"
+    FR_DLR: {t: "$", s: "*", br: "⌥ €"}
     FR_LBRC: "["
     FR_RBRC: "]"
+    FR_LCBR: "{"
+    FR_RCBR: "}"
     FR_1: "1"
     FR_2: "2"
     FR_3: "3"

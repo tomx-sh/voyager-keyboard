@@ -12,6 +12,7 @@ enum layers {
 enum custom_keycodes {
     CAPS_SHIFT = SAFE_RANGE,
     NUM_SHIFT,
+    ALT_EMOJI,
 };
 
 // Lighting is restricted to these five additive colors. Brightness is still
@@ -24,7 +25,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_ESC,  KC_1,           KC_2,           KC_3,           KC_4,           KC_5,                               KC_6,    KC_7,           KC_8,           KC_9,    KC_0,    KC_BSPC,
         KC_TAB,  FR_A,            FR_Z,            KC_E,           KC_R,           KC_T,                               KC_Y,    KC_U,            KC_I,           KC_O,    KC_P,    KC_ENT,
         CAPS_SHIFT,FR_Q,         KC_S,            KC_D,           LSFT_T(KC_F),    KC_G,                               KC_H,    RSFT_T(KC_J),    KC_K,           KC_L,    FR_M,    KC_EQL,
-        KC_LALT, FR_W,           KC_X,            KC_C,           KC_V,           KC_B,                               KC_N,    FR_COMM,         FR_SCLN,        FR_COLN, KC_SLSH, KC_RCTL,
+        ALT_EMOJI,FR_W,          KC_X,            KC_C,           KC_V,           KC_B,                               KC_N,    FR_COMM,         FR_SCLN,        FR_COLN, KC_SLSH, KC_RCTL,
                                                             KC_LGUI, TT(L_SYMBOLS),                       KC_TRNS, KC_SPC
     ),
 
@@ -39,10 +40,10 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     ),
 
     [L_SYMBOLS] = LAYOUT_voyager(
-        _______, _______, _______, KC_BSLS,        KC_GRV,         S(KC_GRV),                           _______, _______, KC_PGUP, _______, _______, QK_BOOT,
-        _______, KC_NUBS, S(KC_NUBS),LALT(KC_RBRC), FR_LPRN,       FR_RPRN,                             _______, _______, KC_UP,   _______, _______, _______,
-        _______, S(KC_QUOT),LALT(S(KC_L)),FR_DLR,  FR_LBRC,        FR_RBRC,                             _______, KC_LEFT,  KC_DOWN, KC_RGHT, _______, _______,
-        _______, _______, KC_KP_ASTERISK,_______,  LALT(S(KC_5)),  LALT(S(KC_MINS)),                    _______, _______, KC_PGDN, _______, _______, _______,
+        _______, _______, _______, _______,        FR_LABK,        FR_RABK,                             _______, _______, KC_PGUP, FR_CIRC, FR_DLR,  QK_BOOT,
+        _______, _______, _______,        _______,  FR_LPRN,        FR_RPRN,                             _______, _______, KC_UP,   FR_LUGR, FR_GRV,  _______,
+        _______, _______, _______,        _______,  FR_LBRC,        FR_RBRC,                             _______, KC_LEFT,  KC_DOWN, KC_RGHT, _______, _______,
+        _______, _______, _______,        _______,  FR_LCBR,        FR_RCBR,                             _______, _______, KC_PGDN, _______, _______, _______,
                                                     _______, _______,                         _______, _______
     ),
 };
@@ -69,8 +70,34 @@ static bool     caps_state_before_tap;
 static uint16_t caps_shift_press_timer;
 static uint16_t caps_shift_tap_timer;
 
+// Hold for Option; tap alone for macOS's Character Viewer shortcut.
+static bool     alt_emoji_pressed;
+static bool     alt_emoji_interrupted;
+static uint16_t alt_emoji_press_timer;
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     bool is_caps_shift_key = keycode == CAPS_SHIFT || keycode == NUM_SHIFT;
+
+    if (keycode != ALT_EMOJI && record->event.pressed) {
+        alt_emoji_interrupted = alt_emoji_pressed;
+    }
+
+    if (keycode == ALT_EMOJI) {
+        if (record->event.pressed) {
+            alt_emoji_pressed     = true;
+            alt_emoji_interrupted = false;
+            alt_emoji_press_timer = timer_read();
+            register_code(KC_LALT);
+        } else {
+            unregister_code(KC_LALT);
+            alt_emoji_pressed = false;
+
+            if (!alt_emoji_interrupted && timer_elapsed(alt_emoji_press_timer) < TAPPING_TERM) {
+                tap_code16(LCTL(LGUI(KC_SPC)));
+            }
+        }
+        return false;
+    }
 
     if (!is_caps_shift_key && record->event.pressed) {
         // Any chord makes the current press an ordinary Shift hold and also
@@ -173,8 +200,8 @@ static const uint8_t PROGMEM ledmap[][RGB_MATRIX_LED_COUNT][3] = {
         {RGB_WHITE_DIM}, {RGB_WHITE_DIM}, {RGB_WHITE_DIM}, {RGB_WHITE_DIM}
     },
     [L_SYMBOLS] = {
-        {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_VIOLET}, {RGB_VIOLET}, {RGB_VIOLET}, {RGB_OFF}, {RGB_GREEN}, {RGB_GREEN}, {RGB_GREEN}, {RGB_VIOLET}, {RGB_VIOLET},
-        {RGB_OFF}, {RGB_GREEN}, {RGB_GREEN}, {RGB_GREEN}, {RGB_VIOLET}, {RGB_VIOLET}, {RGB_OFF}, {RGB_OFF}, {RGB_GREEN}, {RGB_OFF}, {RGB_VIOLET}, {RGB_VIOLET},
+        {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_VIOLET}, {RGB_VIOLET}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_VIOLET}, {RGB_VIOLET},
+        {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_VIOLET}, {RGB_VIOLET}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_BLUE}, {RGB_OFF},
         {RGB_OFF}, {RGB_BLUE}, {RGB_OFF}, {RGB_OFF}, {RGB_BLUE}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_BLUE}, {RGB_OFF},
         {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_BLUE}, {RGB_BLUE}, {RGB_BLUE}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_BLUE}, {RGB_OFF},
         {RGB_OFF}, {RGB_OFF}, {RGB_OFF}, {RGB_OFF}
@@ -186,6 +213,11 @@ static const uint8_t PROGMEM ledmap[][RGB_MATRIX_LED_COUNT][3] = {
 static const uint8_t PROGMEM digit_key_positions[][2] = {
     {0, 2}, {0, 3}, {0, 4}, {0, 5}, {0, 6},
     {6, 0}, {6, 1}, {6, 2}, {6, 3}, {6, 4},
+};
+
+// macOS French ^/$/ù/` positions added to the Symbols layer.
+static const uint8_t PROGMEM french_symbol_key_positions[][2] = {
+    {6, 3}, {6, 4}, {7, 3}, {7, 4},
 };
 
 // A–Z plus É, È, Ç, and À: these are the French AZERTY keys whose letter
@@ -246,6 +278,12 @@ bool rgb_matrix_indicators_user(void) {
         // Numeric mode is an overlay on the base colors; Symbols has its own
         // full map and remains visually and behaviorally higher priority.
         set_layer_color(active_layer == L_SYMBOLS ? L_SYMBOLS : L_BASE);
+
+        if (active_layer == L_SYMBOLS) {
+            RGB green = rgb_at_current_brightness((RGB){RGB_GREEN});
+
+            set_matrix_keys_color(french_symbol_key_positions, ARRAY_SIZE(french_symbol_key_positions), green);
+        }
     } else if (rgb_matrix_get_flags() == LED_FLAG_NONE) {
         rgb_matrix_set_color_all(0, 0, 0);
     }
