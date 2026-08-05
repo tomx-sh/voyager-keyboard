@@ -28,10 +28,10 @@ parse_config:
     FR_Z: "Z"
     FR_Q: "Q"
     FR_W: "W"
-    FR_AT: {t: "@", s: "#"}
+    FR_VOY_AT: {t: "@", s: "#"}
     FR_PIPE: "|"
-    FR_LABK: "<"
-    FR_RABK: ">"
+    FR_VOY_LABK: "<"
+    FR_VOY_RABK: ">"
     FR_CIRC: {t: "^", s: "¨"}
     FR_LUGR: {t: "ù", s: "%"}
     FR_GRV: {t: "`", s: "£"}
