@@ -1,0 +1,73 @@
+parse_config:
+  mark_alternate_layer_activators: true
+  qmk_keycode_map:
+    KC_ESC: "Esc"
+    KC_BSPC: "⌫"
+    KC_TAB: "Tab"
+    KC_ENT: "Enter"
+    KC_SPC: "Space"
+    KC_LALT: "⌥"
+    KC_LGUI: "⌘"
+    KC_RCTL: "R Ctrl"
+    KC_LSFT: "Shift"
+    KC_RSFT: "Shift"
+    KC_EQL: "="
+    KC_SLSH: "/"
+    KC_PGUP: "Page ↑"
+    KC_PGDN: "Page ↓"
+    KC_UP: "↑"
+    KC_DOWN: "↓"
+    KC_LEFT: "←"
+    KC_RGHT: "→"
+    KC_BSLS: "\\"
+    KC_GRV: "`"
+    KC_NUBS: "NUBS"
+    KC_KP_ASTERISK: "*"
+    S(KC_GRV): {t: "`", h: "Shift"}
+    S(KC_NUBS): {t: "NUBS", h: "Shift"}
+    LALT(KC_RBRC): {t: "]", h: "Alt"}
+    S(KC_QUOT): {t: "'", h: "Shift"}
+    LALT(S(KC_L)): "⌥⇧L"
+    LALT(S(KC_5)): "⌥⇧5"
+    LALT(S(KC_MINS)): "⌥⇧-"
+    TT(L_SYMBOLS): {t: "Symbols", h: "Toggle"}
+    KC_TRANSPARENT: {t: "▽", type: trans}
+    QK_BOOT: {t: "BOOT", type: bootloader}
+    FR_A: "A"
+    FR_Z: "Z"
+    FR_Q: "Q"
+    FR_W: "W"
+    FR_UGRV: "Ù"
+    FR_M: "M"
+    FR_COMM: ","
+    FR_SCLN: ";"
+    FR_COLN: ":"
+    FR_LPRN: "("
+    FR_RPRN: ")"
+    FR_DLR: "$"
+    FR_LBRC: "["
+    FR_RBRC: "]"
+    TD(TD_A_SYMBOL): {t: "A", h: "<"}
+    TD(TD_C_LBRC): {t: "C", h: "["}
+    TD(TD_U_UGRV): {t: "U", h: "Ù"}
+    TD(TD_CAPS_SHIFT): {t: "Caps", h: "Shift"}
+
+draw_config:
+  append_colon_to_layer_header: false
+  dark_mode: false
+  footer_text: "ZSA Voyager · generated from keymap.c · do not edit this diagram"
+  key_h: 56
+  key_w: 60
+  mini_legend_line_spacing: 1.1
+  n_columns: 1
+  outer_pad_h: 24
+  outer_pad_w: 24
+  separate_combo_diagrams: false
+  show_key_borders: true
+  svg_extra_style: |
+    svg.keymap { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .layer-title { font-weight: 700; letter-spacing: 0.02em; }
+    rect.key { fill: #ffffff; stroke: #334155; stroke-width: 1.2; }
+    .hold, .shifted { fill: #475569; }
+    .trans rect.key, rect.key.trans { fill: #f8fafc; stroke: #cbd5e1; }
+    .bootloader rect.key, rect.key.bootloader { fill: #fee2e2; stroke: #dc2626; }

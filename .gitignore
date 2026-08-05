@@ -1,0 +1,19 @@
+.build/
+.cache/
+.venv/
+
+# Generated firmware and diagrams
+artifacts/*.bin
+artifacts/*.hex
+artifacts/*.uf2
+artifacts/*.yaml
+artifacts/*.svg
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Editors and macOS
+.DS_Store
+.idea/
+.vscode/

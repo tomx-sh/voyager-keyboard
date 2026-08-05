@@ -1,0 +1,13 @@
+[project]
+name = "voyager-layout-tools"
+version = "0.1.0"
+description = "Pinned tools for rendering the Voyager QMK keymap"
+requires-python = ">=3.12,<4"
+dependencies = [
+    "keymap-drawer==0.23.0",
+    "pyyaml>=6.0.2,<7",
+    "qmk==1.2.0",
+]
+
+[tool.uv]
+package = false
