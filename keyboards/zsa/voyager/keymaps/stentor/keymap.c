@@ -48,12 +48,23 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     ),
 };
 
-bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
+uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
         case LSFT_T(KC_F):
         case RSFT_T(KC_J):
-            // Resolve Shift on the other key's press, without waiting for the
-            // tapping term. This makes capitalization and Shift+Enter immediate.
+            // F/J need a short hold threshold without changing Caps or Emoji.
+            return HOME_ROW_SHIFT_TAPPING_TERM;
+        default:
+            return TAPPING_TERM;
+    }
+}
+
+bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        case LSFT_T(KC_F):
+        case RSFT_T(KC_J):
+            // A nested tap (Shift down, letter down/up, Shift up) shifts the
+            // letter immediately; a fast roll (F/J up first) types both keys.
             return true;
         default:
             return false;
