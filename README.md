@@ -96,7 +96,9 @@ Keep both halves connected during the flash. Zapp detects the bootloader, writes
 
 ## Updating QMK
 
-The ZSA QMK revision is pinned in `scripts/qmk-version.sh`. To update it, change `QMK_REVISION`, remove `.build/qmk_firmware`, and run `make check`. Review QMK breaking changes and the resulting firmware carefully before flashing.
+The ZSA QMK revision is pinned in `scripts/qmk-version.sh`. To update it, change `QMK_REVISION`, run `make setup` to check out the new revision, then run `make check`. Review QMK breaking changes and the resulting firmware carefully before flashing.
+
+The QMK CLI Docker image is pinned by digest in the same file. To refresh the container, pull `ghcr.io/qmk/qmk_cli:latest`, record its multi-architecture digest, update `QMK_DOCKER_IMAGE`, and run `make check`.
 
 ## Safety and recovery
 

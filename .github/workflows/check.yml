@@ -15,12 +15,13 @@ jobs:
 
     steps:
       - name: Check out userspace
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7.0.1
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v10.2.0
         with:
           enable-cache: true
+          version: "0.12.19"
 
       - name: Set up dependencies
         run: make setup
@@ -29,7 +30,7 @@ jobs:
         run: make check
 
       - name: Upload firmware and printable layout
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: voyager-firmware-and-layout
           path: |
@@ -38,4 +39,3 @@ jobs:
             artifacts/*.uf2
             artifacts/layout.svg
           if-no-files-found: error
-

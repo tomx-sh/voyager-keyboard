@@ -17,6 +17,9 @@ docker run --rm \
     --volume "$QMK_DIR:/qmk_firmware" \
     --workdir /workspace \
     --env HOME=/tmp \
+    --env GIT_CONFIG_COUNT=1 \
+    --env GIT_CONFIG_KEY_0=safe.directory \
+    --env GIT_CONFIG_VALUE_0=/qmk_firmware \
     --env QMK_HOME=/qmk_firmware \
     --env QMK_USERSPACE=/workspace \
     "$QMK_DOCKER_IMAGE" \
