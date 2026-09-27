@@ -40,7 +40,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     ),
 
     [L_SYMBOLS] = LAYOUT_voyager(
-        _______, _______, _______, _______,        FR_VOY_LABK,    FR_VOY_RABK,                         KC_BRID, KC_BRIU, KC_PGUP, FR_CIRC, FR_DLR,  QK_BOOT,
+        _______, _______, _______, _______,        FR_VOY_LABK,    FR_VOY_RABK,                         KC_BRID, KC_BRIU, KC_PGUP, FR_CIRC, FR_DLR,  _______,
         _______, FR_VOY_AT, FR_PIPE,      _______,  FR_LPRN,        FR_RPRN,                             KC_VOLD, KC_VOLU, KC_UP,   FR_LUGR, FR_GRV,  _______,
         _______, _______, _______,        _______,  FR_LBRC,        FR_RBRC,                             KC_MUTE, KC_LEFT, KC_DOWN, KC_RGHT, _______, _______,
         _______, _______, _______,        _______,  FR_LCBR,        FR_RCBR,                             _______, _______, KC_PGDN, KC_MPRV, KC_MPLY, KC_MNXT,

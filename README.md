@@ -70,10 +70,7 @@ Then connect the keyboard and run:
 make flash
 ```
 
-The command always builds first, then asks Zapp to flash `artifacts/zsa_voyager_stentor.bin`. When Zapp says it is waiting for the keyboard, enter bootloader mode in either of these ways:
-
-- Press the physical reset button under the left half of the Voyager.
-- On this layout, open the Symbols layer and press the top-right `QK_BOOT` key.
+The command always builds first, then asks Zapp to flash `artifacts/zsa_voyager_stentor.bin`. When Zapp says it is waiting for the keyboard, press the physical reset button on the Voyager's top edge near the `3` key to enter bootloader mode.
 
 Keep both halves connected during the flash. Zapp detects the bootloader, writes the firmware, and the keyboard restarts automatically. The flash script deliberately targets one fixed artifact; it does not accept arbitrary paths or download firmware from Oryx.
 
@@ -102,7 +99,7 @@ The QMK CLI Docker image is pinned by digest in the same file. To refresh the co
 
 ## Safety and recovery
 
-The current layout retains ZSA's Oryx/Keymapp compatibility modules. Keep a bootloader key (`QK_BOOT`) reachable, or use the physical reset button if a firmware change makes the layout unusable. The original Oryx firmware can always be rebuilt from layout `4v9X0`.
+The current layout retains ZSA's Oryx/Keymapp compatibility modules. Use the physical reset button if a firmware change makes the layout unusable. The original Oryx firmware can always be rebuilt from layout `4v9X0`.
 
 ## Troubleshooting
 

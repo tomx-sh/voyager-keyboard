@@ -17,5 +17,5 @@ if [ ! -s "$FIRMWARE_FILE" ]; then
 fi
 
 echo "Firmware: $FIRMWARE_FILE"
-echo "When prompted, press the Voyager's physical reset button or its QK_BOOT key."
+echo "When prompted, press the Voyager's physical reset button on its top edge near the 3 key."
 exec zapp flash "$FIRMWARE_FILE"

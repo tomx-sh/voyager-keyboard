@@ -29,7 +29,7 @@ This compiles the firmware and regenerates the printable SVG. A change is not co
 - Prefer standard QMK keycodes and documented QMK features over custom event handling.
 - Keep French/host-layout aliases in `i18n.h`, not scattered through behavior code.
 - Never put passwords, tokens, or other secrets in keyboard macros.
-- Preserve a reachable `QK_BOOT` key before flashing a changed layout.
+- Preserve access to the Voyager's physical reset button before flashing a changed layout.
 - Treat RGB values as HSV triples unless the surrounding API explicitly expects RGB.
 - Explain non-obvious tap-hold, tap-dance, combo, or RGB behavior next to its definition.
 

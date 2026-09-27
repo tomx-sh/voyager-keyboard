@@ -31,7 +31,6 @@ parse_config:
     TT(L_SYMBOLS): {t: "Symbols", h: "Toggle"}
     ALT_EMOJI: {t: "Emoji", h: "⌥"}
     KC_TRANSPARENT: {t: "▽", type: trans}
-    QK_BOOT: {t: "BOOT", type: bootloader}
     FR_A: "A"
     FR_Z: "Z"
     FR_Q: "Q"
@@ -85,4 +84,3 @@ draw_config:
     rect.key { fill: #ffffff; stroke: #334155; stroke-width: 1.2; }
     .hold, .shifted { fill: #475569; }
     .trans rect.key, rect.key.trans { fill: #f8fafc; stroke: #cbd5e1; }
-    .bootloader rect.key, rect.key.bootloader { fill: #fee2e2; stroke: #dc2626; }
