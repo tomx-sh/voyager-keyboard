@@ -2,7 +2,7 @@
 
 Code-first firmware and printable layout documentation for a ZSA Voyager. The project starts from the Oryx layout `4v9X0`, revision `QzpAKm`, and uses ZSA's open-source QMK fork.
 
-The repository is an [external QMK userspace](https://docs.qmk.fm/newbs_external_userspace): it contains only the personal keymap. The much larger QMK firmware tree is downloaded into `.build/qmk_firmware` at a pinned revision and is not committed.
+The repository is an [external QMK userspace](https://docs.qmk.fm/newbs_external_userspace): it contains the personal keymap and a small tracked USB report patch. The much larger QMK firmware tree is downloaded into `.build/qmk_firmware` at a pinned revision and is not committed. The build applies the patch automatically.
 
 ## Quick start
 
@@ -22,7 +22,7 @@ make check
 
 The outputs are:
 
-- `artifacts/zsa_voyager_stentor.bin` — firmware to flash with ZSA Zapp or Keymapp
+- `artifacts/zsa_voyager_stentor.bin` — firmware to flash with ZSA Zapp
 - `artifacts/layout.svg` — scalable, print-ready diagram containing every layer
 
 Open `artifacts/layout.svg` in a browser and print at 100% or “fit to page”. SVG remains sharp at any paper size.
@@ -56,9 +56,25 @@ Holding F or J acts as Shift. These two Mod-Tap keys have a 150 ms tap window an
 
 A, C, and U are ordinary keys with no hold action or Tap Dance delay.
 
+### Emoji / Option key
+
+The bottom-left key sends a native Fn/Globe tap when tapped alone. Holding it or using it in a chord acts as Option immediately, with the same tap timing as before. Its tap uses the shared Apple Fn implementation described below.
+
+To open the emoji picker, set **System Settings → Keyboard → Press fn/Globe key to → Show Emoji & Symbols**, as described in [Apple's guide](https://support.apple.com/en-sa/guide/mac-help/mchlp1560/mac). The tap follows that macOS preference; the former Control+Command+Space macro has been removed.
+
 ### Focus layer
 
 The right inner thumb key, beside Space, activates the Focus layer the same way the left inner thumb key activates Symbols: hold it for momentary access or tap it to toggle. This thumb key glows violet while Focus is active. On Focus, I/J/K/L send Command+Option+Up/Left/Down/Right to move pane focus in Ghostty and cmux; they also glow violet (full red plus full blue). H/M send Control+Left/Right to switch macOS Spaces; they use full red and blue with half green. The keyboard's global brightness scales these colors, and other keys retain their behavior from lower layers.
+
+F/C send Control+Fn+F/C for window fill/center and glow violet. U/O send Control+Fn+Left/Right; Y/P add Shift for arranging windows. These four keys use full red and half blue. All six shortcuts have been tested successfully on this Voyager and Mac using native Apple Fn.
+
+### Native Apple Fn
+
+The default firmware sends the native Apple Fn usage (`0xFF:0x03`) inside the keyboard report. It uses the Apple Aluminum Keyboard USB identity `05AC:0220` and six-key rollover instead of NKRO. `make build`, `make check`, and `make flash` all use this verified implementation.
+
+The earlier `make build-native-fn` and `make flash-native-fn` commands remain available; they use the same implementation with the artifact name `artifacts/zsa_voyager_stentor-native-fn.bin`. Keymapp may not recognize the Apple USB identity. The physical reset button and ZSA bootloader remain available for flashing with Zapp.
+
+Implementation and source references are in [`patches/README.md`](patches/README.md). The earlier Consumer-page Globe implementation supported F/C but failed for the arrow shortcuts on the tested Mac.
 
 ## Flashing
 
@@ -76,7 +92,7 @@ make flash
 
 The command always builds first, then asks Zapp to flash `artifacts/zsa_voyager_stentor.bin`. When Zapp says it is waiting for the keyboard, press the physical reset button on the Voyager's top edge near the `3` key to enter bootloader mode.
 
-Keep both halves connected during the flash. Zapp detects the bootloader, writes the firmware, and the keyboard restarts automatically. The flash script deliberately targets one fixed artifact; it does not accept arbitrary paths or download firmware from Oryx.
+Keep both halves connected during the flash. Zapp detects the bootloader, writes the firmware, and the keyboard restarts automatically. The flash script selects a fixed artifact for each build variant; it does not accept arbitrary paths or download firmware from Oryx.
 
 ## Project structure
 
@@ -89,6 +105,7 @@ Keep both halves connected during the flash. Zapp detects the bootloader, writes
 │   ├── keymap.json    ZSA compatibility modules
 │   └── rules.mk       enabled firmware features
 ├── scripts/           reproducible setup, build, and render commands
+├── patches/           tracked QMK USB report patch and references
 ├── visual/            keymap-drawer presentation settings
 ├── artifacts/         generated firmware and printable diagram
 ├── qmk.json           external-userspace build target

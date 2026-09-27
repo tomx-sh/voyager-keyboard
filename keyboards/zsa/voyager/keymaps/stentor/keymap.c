@@ -3,6 +3,10 @@
 #include QMK_KEYBOARD_H
 #include "i18n.h"
 
+#if defined(VOYAGER_APPLE_FN) && defined(NKRO_ENABLE)
+#    error "Native Apple Fn requires the 6KRO keyboard report (NKRO_ENABLE = no)."
+#endif
+
 enum layers {
     L_BASE,
     L_NUM,
@@ -14,6 +18,12 @@ enum custom_keycodes {
     CAPS_SHIFT = SAFE_RANGE,
     NUM_SHIFT,
     ALT_EMOJI,
+    MAC_FILL,
+    MAC_CENTER,
+    MAC_MOVE_LEFT,
+    MAC_MOVE_RIGHT,
+    MAC_ARRANGE_LEFT,
+    MAC_ARRANGE_RIGHT,
 };
 
 // Project-specific RGB palette entries. QMK supplies the primary colors;
@@ -21,6 +31,7 @@ enum custom_keycodes {
 #define RGB_WHITE_DIM 15, 15, 15
 #define RGB_VIOLET RGB_MAGENTA
 #define RGB_SPACE_SWITCH 0xFF, 0x80, 0xFF // Full red/blue, 50% green.
+#define RGB_WINDOW_MOVE 0xFF, 0x00, 0x80 // Full red, 50% blue.
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [L_BASE] = LAYOUT_voyager(
@@ -50,13 +61,14 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     ),
 
     // Ghostty and cmux use Command+Option+Arrow for pane focus; macOS uses
-    // Control+Left/Right to switch Spaces.
+    // Control+Left/Right to switch Spaces. The six window actions below hold
+    // Globe/Fn while sending the indicated key chord.
     [L_FOCUS] = LAYOUT_voyager(
-        _______, _______, _______, _______, _______, _______,                         _______, _______, _______, _______, _______, _______,
-        _______, _______, _______, _______, _______, _______,                         _______, _______, LGUI(LALT(KC_UP)), _______, _______, _______,
-        _______, _______, _______, _______, _______, _______,                         LCTL(KC_LEFT), LGUI(LALT(KC_LEFT)), LGUI(LALT(KC_DOWN)), LGUI(LALT(KC_RGHT)), LCTL(KC_RGHT), _______,
-        _______, _______, _______, _______, _______, _______,                         _______, _______, _______, _______, _______, _______,
-                                             _______, _______,            _______, _______
+        _______, _______, _______, _______, _______, _______,                                   _______, _______, _______, _______, _______, _______,
+        _______, _______, _______, _______, _______, _______,                                   MAC_ARRANGE_LEFT, MAC_MOVE_LEFT, LGUI(LALT(KC_UP)), MAC_MOVE_RIGHT, MAC_ARRANGE_RIGHT, _______,
+        _______, _______, _______, _______, MAC_FILL, _______,                                  LCTL(KC_LEFT), LGUI(LALT(KC_LEFT)), LGUI(LALT(KC_DOWN)), LGUI(LALT(KC_RGHT)), LCTL(KC_RGHT), _______,
+        _______, _______, _______, MAC_CENTER, _______, _______,                                _______, _______, _______, _______, _______, _______,
+                                             _______, _______,                         _______, _______
     ),
 };
 
@@ -93,10 +105,81 @@ static bool     caps_state_before_tap;
 static uint16_t caps_shift_press_timer;
 static uint16_t caps_shift_tap_timer;
 
-// Hold for Option; tap alone for macOS's Character Viewer shortcut.
+// Hold for Option; tap alone for native Fn/Globe. macOS selects the tap action
+// through its Keyboard setting (use "Show Emoji & Symbols" for the picker).
 static bool     alt_emoji_pressed;
 static bool     alt_emoji_interrupted;
 static uint16_t alt_emoji_press_timer;
+
+// Native Apple Fn uses the keyboard report byte declared by
+// patches/apple-fn-report.patch. The legacy VOYAGER_NATIVE_FN=no configuration
+// uses Consumer Globe with KEYBOARD_SHARED_EP; it does not support tiling arrows.
+static bool apple_fn_pressed;
+
+static void set_apple_fn(bool pressed) {
+    apple_fn_pressed = pressed;
+#ifdef VOYAGER_APPLE_FN
+    keyboard_report->reserved = pressed ? 1 : 0;
+    send_keyboard_report();
+#else
+    host_consumer_send(pressed ? AC_NEXT_KEYBOARD_LAYOUT_SELECT : 0);
+#endif
+}
+
+static void tap_apple_fn(void) {
+    // A tap must not release Fn while a window shortcut is still holding it.
+    if (apple_fn_pressed) {
+        return;
+    }
+    set_apple_fn(true);
+    wait_ms(TAP_CODE_DELAY);
+    set_apple_fn(false);
+}
+
+// Keep Fn and the chord asserted until the physical window key is released.
+static bool process_mac_window_key(uint16_t keycode, bool pressed) {
+    uint8_t target;
+    bool    shifted = false;
+
+    switch (keycode) {
+        case MAC_FILL:
+            target = KC_F;
+            break;
+        case MAC_CENTER:
+            target = KC_C;
+            break;
+        case MAC_MOVE_LEFT:
+        case MAC_ARRANGE_LEFT:
+            target  = KC_LEFT;
+            shifted = keycode == MAC_ARRANGE_LEFT;
+            break;
+        case MAC_MOVE_RIGHT:
+        case MAC_ARRANGE_RIGHT:
+            target  = KC_RGHT;
+            shifted = keycode == MAC_ARRANGE_RIGHT;
+            break;
+        default:
+            return false;
+    }
+
+    if (pressed) {
+        set_apple_fn(true);
+        register_code(KC_LCTL);
+        if (shifted) {
+            register_code(KC_LSFT);
+        }
+        register_code(target);
+    } else {
+        unregister_code(target);
+        if (shifted) {
+            unregister_code(KC_LSFT);
+        }
+        unregister_code(KC_LCTL);
+        set_apple_fn(false);
+    }
+
+    return true;
+}
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     bool is_caps_shift_key = keycode == CAPS_SHIFT || keycode == NUM_SHIFT;
@@ -116,7 +199,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             alt_emoji_pressed = false;
 
             if (!alt_emoji_interrupted && timer_elapsed(alt_emoji_press_timer) < TAPPING_TERM) {
-                tap_code16(LCTL(LGUI(KC_SPC)));
+                tap_apple_fn();
             }
         }
         return false;
@@ -127,6 +210,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         // closes the double-tap window from a previous Caps tap.
         caps_shift_interrupted = caps_shift_pressed;
         caps_shift_tap_pending = false;
+    }
+
+    if (process_mac_window_key(keycode, record->event.pressed)) {
+        return false;
     }
 
     if (!is_caps_shift_key) {
@@ -269,6 +356,15 @@ static const uint8_t PROGMEM space_switch_key_positions[][2] = {
     {8, 0}, {8, 4},
 };
 
+// Focus-layer macOS window actions: fill/center in violet, move/arrange in red.
+static const uint8_t PROGMEM window_fill_key_positions[][2] = {
+    {2, 5}, {3, 4}, // F, C
+};
+
+static const uint8_t PROGMEM window_move_key_positions[][2] = {
+    {7, 0}, {7, 1}, {7, 3}, {7, 4}, // Y, U, O, P
+};
+
 // A–Z plus É, È, Ç, and À: these are the French AZERTY keys whose letter
 // output is affected by Caps Lock. Punctuation-only positions are omitted.
 static const uint8_t PROGMEM caps_letter_key_positions[][2] = {
@@ -325,13 +421,16 @@ bool rgb_matrix_indicators_user(void) {
 
     if (!keyboard_config.disable_layer_led) {
         // Numeric mode overlays Base. Symbols has its own map; Focus lights
-        // its six shortcuts and the right inner thumb key when active.
+        // its shortcuts and the right inner thumb key when active.
         if (active_layer == L_FOCUS) {
             rgb_matrix_set_color_all(0, 0, 0);
             RGB violet       = rgb_at_current_brightness((RGB){RGB_VIOLET});
             RGB space_switch = rgb_at_current_brightness((RGB){RGB_SPACE_SWITCH});
+            RGB window_move  = rgb_at_current_brightness((RGB){RGB_WINDOW_MOVE});
             set_matrix_keys_color(pane_focus_key_positions, ARRAY_SIZE(pane_focus_key_positions), violet);
             set_matrix_keys_color(space_switch_key_positions, ARRAY_SIZE(space_switch_key_positions), space_switch);
+            set_matrix_keys_color(window_fill_key_positions, ARRAY_SIZE(window_fill_key_positions), violet);
+            set_matrix_keys_color(window_move_key_positions, ARRAY_SIZE(window_move_key_positions), window_move);
             set_matrix_key_color(11, 5, violet); // Right inner thumb: TT(L_FOCUS).
         } else {
             set_layer_color(active_layer == L_SYMBOLS ? L_SYMBOLS : L_BASE);

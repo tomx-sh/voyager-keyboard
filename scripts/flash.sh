@@ -2,7 +2,14 @@
 set -eu
 
 PROJECT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-FIRMWARE_FILE="$PROJECT_DIR/artifacts/zsa_voyager_stentor.bin"
+case "${1:-standard}" in
+    standard) FIRMWARE_FILE="$PROJECT_DIR/artifacts/zsa_voyager_stentor.bin" ;;
+    native-fn) FIRMWARE_FILE="$PROJECT_DIR/artifacts/zsa_voyager_stentor-native-fn.bin" ;;
+    *)
+        echo "usage: $0 [standard|native-fn]" >&2
+        exit 1
+        ;;
+esac
 
 command -v zapp >/dev/null 2>&1 || {
     echo "error: zapp is required to flash the Voyager" >&2

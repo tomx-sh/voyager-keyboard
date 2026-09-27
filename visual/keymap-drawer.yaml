@@ -36,7 +36,13 @@ parse_config:
     LGUI(LALT(KC_RGHT)): "⌘⌥ →"
     LCTL(KC_LEFT): "⌃ ←"
     LCTL(KC_RGHT): "⌃ →"
-    ALT_EMOJI: {t: "Emoji", h: "⌥"}
+    MAC_FILL: "⌃🌐 F"
+    MAC_CENTER: "⌃🌐 C"
+    MAC_MOVE_LEFT: "⌃🌐 ←"
+    MAC_MOVE_RIGHT: "⌃🌐 →"
+    MAC_ARRANGE_LEFT: "⌃⇧🌐 ←"
+    MAC_ARRANGE_RIGHT: "⌃⇧🌐 →"
+    ALT_EMOJI: {t: "🌐 Emoji", h: "⌥"}
     KC_TRANSPARENT: {t: "▽", type: trans}
     FR_A: "A"
     FR_Z: "Z"

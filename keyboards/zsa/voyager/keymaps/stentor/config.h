@@ -6,6 +6,15 @@
 #define SERIAL_NUMBER "voyager-keyboard"
 #define LAYER_STATE_8BIT
 
+#ifdef VOYAGER_APPLE_FN
+// macOS enables the private Fn usage for this Apple Aluminum Keyboard identity.
+// The firmware uses this identity; the physical bootloader stays ZSA.
+#    undef VENDOR_ID
+#    define VENDOR_ID 0x05AC
+#    undef PRODUCT_ID
+#    define PRODUCT_ID 0x0220
+#endif
+
 // F/J Shift keys use a short tap window and become Shift on a nested tap.
 // This keeps fast rolls as letters without delaying deliberate Shift chords.
 #define TAPPING_TERM_PER_KEY
