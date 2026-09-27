@@ -220,12 +220,20 @@ static const uint8_t PROGMEM french_symbol_key_positions[][2] = {
     {6, 3}, {6, 4}, {7, 3}, {7, 4},
 };
 
-// Display and media controls on the Symbols layer share a cyan palette.
+// Display and media controls on the Symbols layer share a blue palette.
 static const uint8_t PROGMEM system_control_key_positions[][2] = {
     {6, 0}, {6, 1}, // Brightness down/up
     {7, 0}, {7, 1}, // Volume down/up
     {8, 0},         // Mute
     {9, 3}, {9, 4}, {9, 5}, // Previous, play/pause, next
+};
+
+// Navigation controls on the Symbols layer share a cyan palette.
+static const uint8_t PROGMEM navigation_key_positions[][2] = {
+    {6, 2},                         // Page up
+    {7, 2},                         // Up
+    {8, 1}, {8, 2}, {8, 3},       // Left, down, right
+    {9, 2},                         // Page down
 };
 
 // A–Z plus É, È, Ç, and À: these are the French AZERTY keys whose letter
@@ -289,10 +297,12 @@ bool rgb_matrix_indicators_user(void) {
 
         if (active_layer == L_SYMBOLS) {
             RGB green = rgb_at_current_brightness((RGB){RGB_GREEN});
+            RGB blue  = rgb_at_current_brightness((RGB){RGB_BLUE});
             RGB cyan  = rgb_at_current_brightness((RGB){RGB_CYAN});
 
             set_matrix_keys_color(french_symbol_key_positions, ARRAY_SIZE(french_symbol_key_positions), green);
-            set_matrix_keys_color(system_control_key_positions, ARRAY_SIZE(system_control_key_positions), cyan);
+            set_matrix_keys_color(system_control_key_positions, ARRAY_SIZE(system_control_key_positions), blue);
+            set_matrix_keys_color(navigation_key_positions, ARRAY_SIZE(navigation_key_positions), cyan);
         }
     } else if (rgb_matrix_get_flags() == LED_FLAG_NONE) {
         rgb_matrix_set_color_all(0, 0, 0);
