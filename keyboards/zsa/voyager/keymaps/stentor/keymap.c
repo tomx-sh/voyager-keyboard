@@ -16,10 +16,11 @@ enum custom_keycodes {
     ALT_EMOJI,
 };
 
-// Lighting is restricted to these six additive colors. Brightness is still
-// controlled globally by the keyboard.
+// Project-specific RGB palette entries. QMK supplies the primary colors;
+// brightness is still controlled globally by the keyboard.
 #define RGB_WHITE_DIM 15, 15, 15
 #define RGB_VIOLET RGB_MAGENTA
+#define RGB_SPACE_SWITCH 0xFF, 0x80, 0xFF // Full red/blue, 50% green.
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [L_BASE] = LAYOUT_voyager(
@@ -48,11 +49,12 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                                                     _______, _______,                         _______, _______
     ),
 
-    // Ghostty and cmux move pane focus with Command+Option+Arrow.
+    // Ghostty and cmux use Command+Option+Arrow for pane focus; macOS uses
+    // Control+Left/Right to switch Spaces.
     [L_FOCUS] = LAYOUT_voyager(
         _______, _______, _______, _______, _______, _______,                         _______, _______, _______, _______, _______, _______,
         _______, _______, _______, _______, _______, _______,                         _______, _______, LGUI(LALT(KC_UP)), _______, _______, _______,
-        _______, _______, _______, _______, _______, _______,                         _______, LGUI(LALT(KC_LEFT)), LGUI(LALT(KC_DOWN)), LGUI(LALT(KC_RGHT)), _______, _______,
+        _______, _______, _______, _______, _______, _______,                         LCTL(KC_LEFT), LGUI(LALT(KC_LEFT)), LGUI(LALT(KC_DOWN)), LGUI(LALT(KC_RGHT)), LCTL(KC_RGHT), _______,
         _______, _______, _______, _______, _______, _______,                         _______, _______, _______, _______, _______, _______,
                                              _______, _______,            _______, _______
     ),
@@ -257,9 +259,14 @@ static const uint8_t PROGMEM navigation_key_positions[][2] = {
     {9, 2},                         // Page down
 };
 
-// I, J, K, L on the right half: pane focus up, left, down, right.
-static const uint8_t PROGMEM focus_key_positions[][2] = {
+// I/J/K/L move pane focus in Ghostty and cmux.
+static const uint8_t PROGMEM pane_focus_key_positions[][2] = {
     {7, 2}, {8, 1}, {8, 2}, {8, 3},
+};
+
+// H/M switch macOS Spaces and use a distinct color from pane focus.
+static const uint8_t PROGMEM space_switch_key_positions[][2] = {
+    {8, 0}, {8, 4},
 };
 
 // A–Z plus É, È, Ç, and À: these are the French AZERTY keys whose letter
@@ -318,11 +325,14 @@ bool rgb_matrix_indicators_user(void) {
 
     if (!keyboard_config.disable_layer_led) {
         // Numeric mode overlays Base. Symbols has its own map; Focus lights
-        // only its four navigation shortcuts.
+        // its six shortcuts and the right inner thumb key when active.
         if (active_layer == L_FOCUS) {
             rgb_matrix_set_color_all(0, 0, 0);
-            RGB magenta = rgb_at_current_brightness((RGB){RGB_MAGENTA});
-            set_matrix_keys_color(focus_key_positions, ARRAY_SIZE(focus_key_positions), magenta);
+            RGB violet       = rgb_at_current_brightness((RGB){RGB_VIOLET});
+            RGB space_switch = rgb_at_current_brightness((RGB){RGB_SPACE_SWITCH});
+            set_matrix_keys_color(pane_focus_key_positions, ARRAY_SIZE(pane_focus_key_positions), violet);
+            set_matrix_keys_color(space_switch_key_positions, ARRAY_SIZE(space_switch_key_positions), space_switch);
+            set_matrix_key_color(11, 5, violet); // Right inner thumb: TT(L_FOCUS).
         } else {
             set_layer_color(active_layer == L_SYMBOLS ? L_SYMBOLS : L_BASE);
         }

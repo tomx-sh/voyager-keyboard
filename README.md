@@ -48,7 +48,7 @@ The left home-row key has deliberately custom timing rather than QMK Tap Dance:
 
 The numeric layer emits the shifted key positions required for digits by the macOS French AZERTY input source. It does not send the host `Num Lock` key, which would not change the main AZERTY number row. Entering Numbers mode ensures Caps Lock is on; the single-tap exit ensures Caps Lock is off. The double-tap recognition window is configured by `CAPS_SHIFT_DOUBLE_TAP_TERM` in `config.h`; it never delays the single-tap action.
 
-All static key lighting uses a five-color additive palette: white, green, red, blue, and violet (`red + blue`). The keyboard's global brightness setting scales these colors without changing their hue.
+Static key lighting uses QMK's named RGB colors and the project-specific variants declared together near the top of `keymap.c`. The keyboard's global brightness setting scales these colors without changing their hue.
 
 ### Home-row Shift keys
 
@@ -58,7 +58,7 @@ A, C, and U are ordinary keys with no hold action or Tap Dance delay.
 
 ### Focus layer
 
-The right inner thumb key, beside Space, activates the Focus layer the same way the left inner thumb key activates Symbols: hold it for momentary access or tap it to toggle. On Focus, I/J/K/L send Command+Option+Up/Left/Down/Right to move pane focus in Ghostty and cmux. These four keys glow magenta (full red plus full blue, scaled by the keyboard's brightness); other keys retain their behavior from lower layers.
+The right inner thumb key, beside Space, activates the Focus layer the same way the left inner thumb key activates Symbols: hold it for momentary access or tap it to toggle. This thumb key glows violet while Focus is active. On Focus, I/J/K/L send Command+Option+Up/Left/Down/Right to move pane focus in Ghostty and cmux; they also glow violet (full red plus full blue). H/M send Control+Left/Right to switch macOS Spaces; they use full red and blue with half green. The keyboard's global brightness scales these colors, and other keys retain their behavior from lower layers.
 
 ## Flashing
 
