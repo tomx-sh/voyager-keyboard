@@ -7,6 +7,7 @@ enum layers {
     L_BASE,
     L_NUM,
     L_SYMBOLS,
+    L_FOCUS,
 };
 
 enum custom_keycodes {
@@ -26,7 +27,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_TAB,  FR_A,            FR_Z,            KC_E,           KC_R,           KC_T,                               KC_Y,    KC_U,            KC_I,           KC_O,    KC_P,    KC_ENT,
         CAPS_SHIFT,FR_Q,         KC_S,            KC_D,           LSFT_T(KC_F),    KC_G,                               KC_H,    RSFT_T(KC_J),    KC_K,           KC_L,    FR_M,    KC_EQL,
         ALT_EMOJI,FR_W,          KC_X,            KC_C,           KC_V,           KC_B,                               KC_N,    FR_COMM,         FR_SCLN,        FR_COLN, KC_SLSH, KC_RCTL,
-                                                            KC_LGUI, TT(L_SYMBOLS),                       KC_TRNS, KC_SPC
+                                                            KC_LGUI, TT(L_SYMBOLS),                       TT(L_FOCUS), KC_SPC
     ),
 
     // macOS French AZERTY has no useful Num Lock for the main number row.
@@ -45,6 +46,15 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         _______, _______, _______,        _______,  FR_LBRC,        FR_RBRC,                             KC_MUTE, KC_LEFT, KC_DOWN, KC_RGHT, _______, _______,
         _______, _______, _______,        _______,  FR_LCBR,        FR_RCBR,                             _______, _______, KC_PGDN, KC_MPRV, KC_MPLY, KC_MNXT,
                                                     _______, _______,                         _______, _______
+    ),
+
+    // Ghostty and cmux move pane focus with Command+Option+Arrow.
+    [L_FOCUS] = LAYOUT_voyager(
+        _______, _______, _______, _______, _______, _______,                         _______, _______, _______, _______, _______, _______,
+        _______, _______, _______, _______, _______, _______,                         _______, _______, LGUI(LALT(KC_UP)), _______, _______, _______,
+        _______, _______, _______, _______, _______, _______,                         _______, LGUI(LALT(KC_LEFT)), LGUI(LALT(KC_DOWN)), LGUI(LALT(KC_RGHT)), _______, _______,
+        _______, _______, _______, _______, _______, _______,                         _______, _______, _______, _______, _______, _______,
+                                             _______, _______,            _______, _______
     ),
 };
 
@@ -247,6 +257,11 @@ static const uint8_t PROGMEM navigation_key_positions[][2] = {
     {9, 2},                         // Page down
 };
 
+// I, J, K, L on the right half: pane focus up, left, down, right.
+static const uint8_t PROGMEM focus_key_positions[][2] = {
+    {7, 2}, {8, 1}, {8, 2}, {8, 3},
+};
+
 // A–Z plus É, È, Ç, and À: these are the French AZERTY keys whose letter
 // output is affected by Caps Lock. Punctuation-only positions are omitted.
 static const uint8_t PROGMEM caps_letter_key_positions[][2] = {
@@ -302,9 +317,15 @@ bool rgb_matrix_indicators_user(void) {
     uint8_t active_layer = get_highest_layer(layer_state);
 
     if (!keyboard_config.disable_layer_led) {
-        // Numeric mode is an overlay on the base colors; Symbols has its own
-        // full map and remains visually and behaviorally higher priority.
-        set_layer_color(active_layer == L_SYMBOLS ? L_SYMBOLS : L_BASE);
+        // Numeric mode overlays Base. Symbols has its own map; Focus lights
+        // only its four navigation shortcuts.
+        if (active_layer == L_FOCUS) {
+            rgb_matrix_set_color_all(0, 0, 0);
+            RGB magenta = rgb_at_current_brightness((RGB){RGB_MAGENTA});
+            set_matrix_keys_color(focus_key_positions, ARRAY_SIZE(focus_key_positions), magenta);
+        } else {
+            set_layer_color(active_layer == L_SYMBOLS ? L_SYMBOLS : L_BASE);
+        }
 
         if (active_layer == L_SYMBOLS) {
             RGB green = rgb_at_current_brightness((RGB){RGB_GREEN});
@@ -319,14 +340,14 @@ bool rgb_matrix_indicators_user(void) {
         rgb_matrix_set_color_all(0, 0, 0);
     }
 
-    if (active_layer != L_SYMBOLS && caps_lock_active) {
+    if (active_layer != L_SYMBOLS && active_layer != L_FOCUS && caps_lock_active) {
         RGB blue = rgb_at_current_brightness((RGB){RGB_BLUE});
 
         set_matrix_key_color(2, 1, blue);
         set_matrix_keys_color(caps_letter_key_positions, ARRAY_SIZE(caps_letter_key_positions), blue);
     }
 
-    if (active_layer != L_SYMBOLS && layer_state_is(L_NUM)) {
+    if (active_layer != L_SYMBOLS && active_layer != L_FOCUS && layer_state_is(L_NUM)) {
         RGB violet = rgb_at_current_brightness((RGB){RGB_VIOLET});
 
         // Apply this after Caps lighting so É/È/Ç/À positions are violet when

@@ -56,6 +56,10 @@ Holding F or J acts as Shift. These two Mod-Tap keys have a 150 ms tap window an
 
 A, C, and U are ordinary keys with no hold action or Tap Dance delay.
 
+### Focus layer
+
+The right inner thumb key, beside Space, activates the Focus layer the same way the left inner thumb key activates Symbols: hold it for momentary access or tap it to toggle. On Focus, I/J/K/L send Command+Option+Up/Left/Down/Right to move pane focus in Ghostty and cmux. These four keys glow magenta (full red plus full blue, scaled by the keyboard's brightness); other keys retain their behavior from lower layers.
+
 ## Flashing
 
 Install ZSA's open-source command-line flasher once:
